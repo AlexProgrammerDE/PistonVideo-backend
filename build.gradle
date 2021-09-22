@@ -13,9 +13,7 @@ repositories {
 dependencies {
     implementation "com.sparkjava:spark-core:2.9.3"
     implementation "org.slf4j:slf4j-simple:1.7.32"
-
-    runtimeOnly 'com.h2database:h2:1.4.200'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:2.7.3'
+    implementation 'org.mongodb:mongo-java-driver:2.12.3'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
     annotationProcessor 'org.projectlombok:lombok:1.18.20'

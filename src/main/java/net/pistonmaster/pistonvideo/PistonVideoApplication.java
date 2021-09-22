@@ -16,8 +16,7 @@ public class PistonVideoApplication {
     public static void main(String[] args) {
         port(3434);
 
-        File uploadDir = new File("upload");
-        uploadDir.mkdir();
+        externalStaticFileLocation(videoManager.uploadDir.getAbsolutePath());
 
         before("/*", (q, a) -> System.out.println("A call"));
         path("/api", () -> {
