@@ -1,5 +1,6 @@
 package net.pistonmaster.pistonvideo;
 
+import com.google.gson.Gson;
 import spark.Request;
 import spark.Response;
 
@@ -47,6 +48,15 @@ public class VideoManager {
             Files.copy(input, new File(thumbnailDir, id + ".png").toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        return "{\"success\": true}";
+        return "{\"success\": true, \"id\":\"" + id + "\"}";
+    }
+
+    public String videoData(Request request, Response response) throws Exception {
+        return getVideoData(request.queryParams("id"));
+    }
+
+    private String getVideoData(String videoID) {
+        System.out.println("a: " + videoID);
+        return new Gson().toJson(PistonVideoApplication.NYAN_CAT);
     }
 }

@@ -1,9 +1,9 @@
 package net.pistonmaster.pistonvideo;
 
+import net.pistonmaster.pistonvideo.templates.Video;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Optional;
 
 import static spark.Spark.*;
@@ -12,6 +12,8 @@ public class PistonVideoApplication {
     private static final Authenticator authenticator = new Authenticator();
     private static final VideoManager videoManager = new VideoManager();
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
+    private static final Suggester suggester = new Suggester();
+    public static final Video NYAN_CAT = new Video("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"});
 
     public static void main(String[] args) {
         port(3434);
@@ -81,10 +83,8 @@ public class PistonVideoApplication {
                     post("/delete", (request, response) -> null);
                 });
             });
-
-            path("/watch", () -> {
-                post("/delete", (request, response) -> null);
-            });
+            get("/videodata", videoManager::videoData);
+            get("/suggestions", suggester::getSuggestions);
         });
 
     }
