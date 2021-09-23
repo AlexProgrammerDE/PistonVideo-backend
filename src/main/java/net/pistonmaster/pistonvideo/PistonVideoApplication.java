@@ -1,5 +1,7 @@
 package net.pistonmaster.pistonvideo;
 
+import com.google.gson.Gson;
+import net.pistonmaster.pistonvideo.templates.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.Video;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,17 +56,10 @@ public class PistonVideoApplication {
                     String password = request.queryParams("password");
 
                     Authenticator.RejectReason reason = authenticator.createUser(username, email, password);
-
                     if (reason == Authenticator.RejectReason.NONE) {
-                        Optional<String> token = authenticator.generateToken(email, password);
-
-                        if (token.isPresent()) {
-
-                        }
-
-                        return true;
+                        return new Gson().toJson(new SuccessResponse(true));
                     } else {
-                        return false;
+                        return new Gson().toJson(new SuccessResponse(false));
                     }
                 });
                 post("/update", (request, response) -> null);
