@@ -13,6 +13,11 @@ public class Suggester {
         List<Video> videos = new ArrayList<>();
 
         videos.add(PistonVideoApplication.NYAN_CAT);
+        videos.add(PistonVideoApplication.NYAN_CAT);
+        videos.add(PistonVideoApplication.NYAN_CAT);
+        videos.add(PistonVideoApplication.NYAN_CAT);
+        videos.add(PistonVideoApplication.NYAN_CAT);
+        videos.add(PistonVideoApplication.NYAN_CAT);
 
         return new Gson().toJson(videos);
     }

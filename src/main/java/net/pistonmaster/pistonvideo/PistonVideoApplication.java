@@ -1,5 +1,6 @@
 package net.pistonmaster.pistonvideo;
 
+import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
 import net.pistonmaster.pistonvideo.templates.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.Video;
@@ -18,6 +19,9 @@ public class PistonVideoApplication {
     public static final Video NYAN_CAT = new Video("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"});
 
     public static void main(String[] args) {
+        ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+        DBManager.init(args[0], args[1], args[2], Integer.parseInt(args[3]));
+
         port(3434);
 
         externalStaticFileLocation(videoManager.uploadDir.getAbsolutePath());
@@ -57,11 +61,12 @@ public class PistonVideoApplication {
 
                     Authenticator.RejectReason reason = authenticator.createUser(username, email, password);
                     if (reason == Authenticator.RejectReason.NONE) {
-                        return new Gson().toJson(new SuccessResponse(true));
+                        return new Gson().toJson(new SuccessResponse(true, null));
                     } else {
-                        return new Gson().toJson(new SuccessResponse(false));
+                        return new Gson().toJson(new SuccessResponse(false, reason.getErrorMessage()));
                     }
                 });
+                post("/forgotpassword", (request, response) -> null);
                 post("/update", (request, response) -> null);
                 post("/delete", (request, response) -> null);
             });
@@ -81,6 +86,5 @@ public class PistonVideoApplication {
             get("/videodata", videoManager::videoData);
             get("/suggestions", suggester::getSuggestions);
         });
-
     }
 }

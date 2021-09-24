@@ -1,4 +1,4 @@
 package net.pistonmaster.pistonvideo.templates;
 
-public record SuccessResponse(boolean success) {
+public record SuccessResponse(boolean success, String errorMessage) {
 }
