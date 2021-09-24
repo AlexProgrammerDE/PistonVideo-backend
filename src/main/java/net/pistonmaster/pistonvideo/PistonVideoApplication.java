@@ -2,9 +2,9 @@ package net.pistonmaster.pistonvideo;
 
 import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
-import net.pistonmaster.pistonvideo.templates.SuccessErrorResponse;
-import net.pistonmaster.pistonvideo.templates.SuccessResponse;
-import net.pistonmaster.pistonvideo.templates.Video;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.pistonmaster.pistonvideo.templates.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +32,11 @@ public class PistonVideoApplication {
             path("/auth", () -> {
                 before("/*", (q, a) -> System.out.println("Auth call"));
                 post("/login", (request, response) -> {
-                    String email = request.queryParams("email");
-                    String password = request.queryParams("password");
+                    LoginRequest loginRequest = new Gson().fromJson(request.body(), LoginRequest.class);
 
-                    Optional<String> token = authenticator.generateToken(email, password);
+                    Optional<String> token = authenticator.generateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-                    return token.map(s -> "{\"token\": \"" + s + "\"}").orElse("{}");
+                    return token.map(s -> new Gson().toJson(new TokenResponse(s))).orElse("{}");
                 });
 
                 post("/logout", (request, response) -> {
@@ -55,12 +54,10 @@ public class PistonVideoApplication {
                 });
             });
             path("/user", () -> {
-                get("/register", (request, response) -> {
-                    String username = request.queryParams("username");
-                    String email = request.queryParams("email");
-                    String password = request.queryParams("password");
+                post("/register", (request, response) -> {
+                    SignupRequest signupRequest = new Gson().fromJson(request.body(), SignupRequest.class);
 
-                    Authenticator.RejectReason reason = authenticator.createUser(username, email, password);
+                    Authenticator.RejectReason reason = authenticator.createUser(signupRequest.getUsername(), signupRequest.getEmail(), signupRequest.getPassword());
                     if (reason == Authenticator.RejectReason.NONE) {
                         return new Gson().toJson(new SuccessResponse(true));
                     } else {
