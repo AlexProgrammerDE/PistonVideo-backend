@@ -2,6 +2,7 @@ package net.pistonmaster.pistonvideo;
 
 import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
+import net.pistonmaster.pistonvideo.templates.SuccessErrorResponse;
 import net.pistonmaster.pistonvideo.templates.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.Video;
 import org.slf4j.Logger;
@@ -61,9 +62,9 @@ public class PistonVideoApplication {
 
                     Authenticator.RejectReason reason = authenticator.createUser(username, email, password);
                     if (reason == Authenticator.RejectReason.NONE) {
-                        return new Gson().toJson(new SuccessResponse(true, null));
+                        return new Gson().toJson(new SuccessResponse(true));
                     } else {
-                        return new Gson().toJson(new SuccessResponse(false, reason.getErrorMessage()));
+                        return new Gson().toJson(new SuccessErrorResponse(false, reason.getErrorMessage()));
                     }
                 });
                 post("/forgotpassword", (request, response) -> null);
@@ -84,7 +85,7 @@ public class PistonVideoApplication {
                 });
             });
             get("/videodata", videoManager::videoData);
-            get("/suggestions", suggester::getSuggestions);
+            get("/suggestions", suggester::suggestions);
         });
     }
 }

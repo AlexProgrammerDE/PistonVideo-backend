@@ -76,7 +76,8 @@ public class Authenticator {
                                 .append("_id", new ObjectId())
                                 .append("username", username)
                                 .append("email", email)
-                                .append("password", password));
+                                .append("password", password)
+                                .append("userid", UUID.randomUUID().toString()));
                         System.out.println("Success! Inserted document id: " + result.getInsertedId());
                         return RejectReason.NONE;
                     } catch (MongoException me) {

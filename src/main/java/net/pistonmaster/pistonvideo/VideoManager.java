@@ -1,6 +1,19 @@
 package net.pistonmaster.pistonvideo;
 
 import com.google.gson.Gson;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.InsertOneResult;
+import net.pistonmaster.pistonvideo.templates.SuccessIDResponse;
+import net.pistonmaster.pistonvideo.templates.SuccessResponse;
+import net.pistonmaster.pistonvideo.templates.Video;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
@@ -10,6 +23,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 
 public class VideoManager {
@@ -32,12 +46,12 @@ public class VideoManager {
 
         Part video = request.raw().getPart("video");
         if (video == null || !video.getSubmittedFileName().endsWith(".mp4")) {
-            return "{\"success\": false}";
+            return new Gson().toJson(new SuccessResponse(false));
         }
 
         Part thumbnail = request.raw().getPart("thumbnail");
         if (thumbnail == null || !thumbnail.getSubmittedFileName().endsWith(".png")) {
-            return "{\"success\": false}";
+            return new Gson().toJson(new SuccessResponse(false));
         }
 
         try (InputStream input = video.getInputStream()) {
@@ -48,7 +62,27 @@ public class VideoManager {
             Files.copy(input, new File(thumbnailDir, id + ".png").toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        return "{\"success\": true, \"id\":\"" + id + "\"}";
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("videos");
+
+            try {
+                InsertOneResult result = collection.insertOne(new Document()
+                        .append("_id", new ObjectId())
+                        .append("videoID", id)
+                        .append("title", request.queryParams("title"))
+                        .append("description", request.queryParams("description"))
+                        .append("videoUrl", "/static/videos/" + id + ".mp4")
+                        .append("thumbnailUrl", "/static/thumbnails/" + id + ".png")
+                        .append("tags", List.of()));
+                System.out.println("Success! Inserted document id: " + result.getInsertedId());
+            } catch (MongoException me) {
+                System.err.println("Unable to insert due to an error: " + me);
+                return new Gson().toJson(new SuccessResponse(false));
+            }
+        }
+
+        return new Gson().toJson(new SuccessIDResponse(true, id));
     }
 
     public String videoData(Request request, Response response) throws Exception {
@@ -56,7 +90,23 @@ public class VideoManager {
     }
 
     private String getVideoData(String videoID) {
-        System.out.println("a: " + videoID);
-        return new Gson().toJson(PistonVideoApplication.NYAN_CAT);
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("videos");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("videoID", "title", "description", "videoUrl", "thumbnailUrl", "tags"),
+                    Projections.excludeId());
+
+            Document doc = collection.find(Filters.eq("videoID", videoID))
+                    .projection(projectionFields)
+                    .first();
+
+            if (doc == null)
+                return "{}";
+
+            return new Gson().toJson(new Video(videoID, doc.getString("title"), doc.getString("description"), doc.getString("videoUrl"), doc.getString("thumbnailUrl"), doc.getList("tags", String.class).toArray(new String[0])));
+        }
+
     }
 }

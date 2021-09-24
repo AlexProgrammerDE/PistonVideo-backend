@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Suggester {
-    public String getSuggestions(Request request, Response response) {
+    public String suggestions(Request request, Response response) {
         List<Video> videos = new ArrayList<>();
 
         videos.add(PistonVideoApplication.NYAN_CAT);
