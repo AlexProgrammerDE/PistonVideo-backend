@@ -8,8 +8,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.InsertOneResult;
-import net.pistonmaster.pistonvideo.templates.SuccessIDResponse;
-import net.pistonmaster.pistonvideo.templates.SuccessResponse;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -74,7 +74,7 @@ public class VideoManager {
                         .append("videoUrl", "/static/videos/" + id + ".mp4")
                         .append("thumbnailUrl", "/static/thumbnails/" + id + ".png")
                         .append("tags", List.of())
-                        .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request.headers("Authorization"))));
+                        .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request.headers("Authorization")).get()));
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
             } catch (MongoException me) {
                 System.err.println("Unable to insert due to an error: " + me);
@@ -95,7 +95,7 @@ public class VideoManager {
             MongoCollection<Document> collection = database.getCollection("videos");
 
             Bson projectionFields = Projections.fields(
-                    Projections.include("videoID", "title", "description", "videoUrl", "thumbnailUrl", "tags"),
+                    Projections.include("videoID", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
                     Projections.excludeId());
 
             Document doc = collection.find(Filters.eq("videoID", videoID))

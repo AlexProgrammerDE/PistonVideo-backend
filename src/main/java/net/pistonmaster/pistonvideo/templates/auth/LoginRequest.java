@@ -1,4 +1,4 @@
-package net.pistonmaster.pistonvideo.templates;
+package net.pistonmaster.pistonvideo.templates.auth;
 
 import lombok.Getter;
 

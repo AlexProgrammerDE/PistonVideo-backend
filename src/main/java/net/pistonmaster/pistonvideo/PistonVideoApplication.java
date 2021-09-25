@@ -4,6 +4,11 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
 import lombok.Getter;
 import net.pistonmaster.pistonvideo.templates.*;
+import net.pistonmaster.pistonvideo.templates.auth.LoginRequest;
+import net.pistonmaster.pistonvideo.templates.auth.SignupRequest;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessErrorResponse;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
+import net.pistonmaster.pistonvideo.templates.simple.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +28,11 @@ public class PistonVideoApplication {
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
         DBManager.init(args[0], args[1], args[2], Integer.parseInt(args[3]));
 
+        int maxThreads = 8;
+        int minThreads = 2;
+        int timeOutMillis = 30000;
+        threadPool(maxThreads, minThreads, timeOutMillis);
+
         port(3434);
 
         externalStaticFileLocation(videoManager.uploadDir.getAbsolutePath());
@@ -30,7 +40,6 @@ public class PistonVideoApplication {
         before("/*", (q, a) -> System.out.println("A call"));
         path("/api", () -> {
             path("/auth", () -> {
-                before("/*", (q, a) -> System.out.println("Auth call"));
                 post("/login", (request, response) -> {
                     LoginRequest loginRequest = new Gson().fromJson(request.body(), LoginRequest.class);
 
