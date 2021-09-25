@@ -10,7 +10,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.InsertOneResult;
 import net.pistonmaster.pistonvideo.templates.SuccessIDResponse;
 import net.pistonmaster.pistonvideo.templates.SuccessResponse;
-import net.pistonmaster.pistonvideo.templates.Video;
+import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 
 public class VideoManager {
     public final File uploadDir = new File("upload");
@@ -40,7 +39,7 @@ public class VideoManager {
     }
 
     public String upload(Request request, Response response) throws Exception {
-        String id = UUID.randomUUID().toString().replace("-", "").substring(0, 6);
+        String id = IDGenerator.generateSixCharLong();
 
         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
 
@@ -74,7 +73,8 @@ public class VideoManager {
                         .append("description", request.queryParams("description"))
                         .append("videoUrl", "/static/videos/" + id + ".mp4")
                         .append("thumbnailUrl", "/static/thumbnails/" + id + ".png")
-                        .append("tags", List.of()));
+                        .append("tags", List.of())
+                        .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request.headers("Authorization"))));
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
             } catch (MongoException me) {
                 System.err.println("Unable to insert due to an error: " + me);
@@ -105,8 +105,15 @@ public class VideoManager {
             if (doc == null)
                 return "{}";
 
-            return new Gson().toJson(new Video(videoID, doc.getString("title"), doc.getString("description"), doc.getString("videoUrl"), doc.getString("thumbnailUrl"), doc.getList("tags", String.class).toArray(new String[0])));
-        }
+            String uploader = doc.getString("uploader");
 
+            return new Gson().toJson(new VideoResponse(videoID,
+                    doc.getString("title"),
+                    doc.getString("description"),
+                    doc.getString("videoUrl"),
+                    doc.getString("thumbnailUrl"),
+                    doc.getList("tags", String.class).toArray(new String[0]),
+                    PistonVideoApplication.getUserManager().generatePublicResponse(uploader)));
+        }
     }
 }

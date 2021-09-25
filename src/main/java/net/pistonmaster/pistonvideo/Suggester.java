@@ -1,7 +1,7 @@
 package net.pistonmaster.pistonvideo;
 
 import com.google.gson.Gson;
-import net.pistonmaster.pistonvideo.templates.Video;
+import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import spark.Request;
 import spark.Response;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Suggester {
     public String suggestions(Request request, Response response) {
-        List<Video> videos = new ArrayList<>();
+        List<VideoResponse> videos = new ArrayList<>();
 
         videos.add(PistonVideoApplication.NYAN_CAT);
         videos.add(PistonVideoApplication.NYAN_CAT);

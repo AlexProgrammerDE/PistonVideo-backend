@@ -9,6 +9,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.InsertOneResult;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -16,21 +17,74 @@ import org.bson.types.ObjectId;
 import java.util.Optional;
 import java.util.UUID;
 
-public class Authenticator {
-    public boolean isValid(String token) {
-        return true;
-    }
-
+public class UserManager {
     public Optional<String> generateToken(String email, String password) {
         if (isValid(email, password)) {
-            return Optional.of(UUID.randomUUID().toString().replace("-", ""));
+            String token = UUID.randomUUID().toString();
+
+            try (MongoClient client = DBManager.getMongoClient()) {
+                MongoDatabase database = client.getDatabase("pistonvideo");
+                MongoCollection<Document> collection = database.getCollection("tokens");
+
+                collection.insertOne(new Document()
+                        .append("_id", new ObjectId())
+                        .append("token", token)
+                        .append("userid", getUserIdFromEmail(email)));
+
+                return Optional.of(token);
+            }
         } else {
             return Optional.empty();
         }
     }
 
     public void invalidate(String token) {
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("tokens");
 
+            // TODO
+        }
+    }
+
+    private String getUserIdFromEmail(String email) {
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("users");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("email", "userid"),
+                    Projections.excludeId());
+
+            Document doc = collection.find(Filters.eq("email", email))
+                    .projection(projectionFields)
+                    .first();
+
+            if (doc == null)
+                return null;
+
+            return doc.getString("userid");
+        }
+    }
+
+    public Optional<String> getUserIdFromToken(String token) {
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("tokens");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("userid", "token"),
+                    Projections.excludeId());
+
+            Document doc = collection.find(Filters.eq("token", token))
+                    .projection(projectionFields)
+                    .first();
+
+            if (doc == null)
+                return Optional.empty();
+
+            return Optional.of(doc.getString("userid"));
+        }
     }
 
     private boolean isValid(String email, String password) {
@@ -77,7 +131,8 @@ public class Authenticator {
                                 .append("username", username)
                                 .append("email", email)
                                 .append("password", password)
-                                .append("userid", UUID.randomUUID().toString()));
+                                .append("userid", IDGenerator.generateSixCharLong())
+                                .append("avatarUrl", "/static/avatars/blank.png"));
                         System.out.println("Success! Inserted document id: " + result.getInsertedId());
                         return RejectReason.NONE;
                     } catch (MongoException me) {
@@ -108,6 +163,26 @@ public class Authenticator {
 
         RejectReason() {
             errorMessage = "";
+        }
+    }
+
+    public PublicUserResponse generatePublicResponse(String userid) {
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("users");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("userid", "username", "avatarUrl"),
+                    Projections.excludeId());
+
+            Document doc = collection.find(Filters.eq("userid", userid))
+                    .projection(projectionFields)
+                    .first();
+
+            if (doc == null)
+                return null;
+
+            return new PublicUserResponse(doc.getString("username"), userid, doc.getString("avatarUrl"));
         }
     }
 }
