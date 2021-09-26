@@ -68,7 +68,7 @@ public class VideoManager {
             try {
                 InsertOneResult result = collection.insertOne(new Document()
                         .append("_id", new ObjectId())
-                        .append("videoID", id)
+                        .append("videoId", id)
                         .append("title", request.queryParams("title"))
                         .append("description", request.queryParams("description"))
                         .append("videoUrl", "/static/videos/" + id + ".mp4")
@@ -89,31 +89,39 @@ public class VideoManager {
         return getVideoData(request.queryParams("id"));
     }
 
-    private String getVideoData(String videoID) {
+    private String getVideoData(String videoId) {
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("videos");
 
-            Bson projectionFields = Projections.fields(
-                    Projections.include("videoID", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
-                    Projections.excludeId());
+            Bson projectionFields = videoProjection();
 
-            Document doc = collection.find(Filters.eq("videoID", videoID))
+            Document doc = collection.find(Filters.eq("videoId", videoId))
                     .projection(projectionFields)
                     .first();
 
             if (doc == null)
                 return new Gson().toJson(PistonVideoApplication.DELETED_VIDEO);
 
-            String uploader = doc.getString("uploader");
-
-            return new Gson().toJson(new VideoResponse(videoID,
-                    doc.getString("title"),
-                    doc.getString("description"),
-                    doc.getString("videoUrl"),
-                    doc.getString("thumbnailUrl"),
-                    doc.getList("tags", String.class).toArray(new String[0]),
-                    PistonVideoApplication.getUserManager().generatePublicResponse(uploader)));
+            return new Gson().toJson(generateResponse(doc));
         }
+    }
+
+    public static Bson videoProjection() {
+        return Projections.fields(
+                Projections.include("videoId", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
+                Projections.excludeId());
+    }
+
+    public static VideoResponse generateResponse(Document doc) {
+        String uploader = doc.getString("uploader");
+
+        return new VideoResponse(doc.getString("videoId"),
+                doc.getString("title"),
+                doc.getString("description"),
+                doc.getString("videoUrl"),
+                doc.getString("thumbnailUrl"),
+                doc.getList("tags", String.class).toArray(new String[0]),
+                PistonVideoApplication.getUserManager().generatePublicResponse(uploader));
     }
 }

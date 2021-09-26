@@ -22,8 +22,8 @@ public class PistonVideoApplication {
     private static final VideoManager videoManager = new VideoManager();
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
     private static final Suggester suggester = new Suggester();
-    public static final VideoResponse NYAN_CAT = new VideoResponse("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"}, new PublicUserResponse("Pistonmaster", "", "/avatars/"));
-    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", "/static/avatars/blank.png");
+    public static final VideoResponse NYAN_CAT = new VideoResponse("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"}, new PublicUserResponse("Pistonmaster", "", "/avatars/", ""));
+    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", "/static/avatars/blank.png", "");
     public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER);
 
     public static void main(String[] args) {
@@ -62,27 +62,18 @@ public class PistonVideoApplication {
                     String token = request.headers("Authorization");
 
                     if (token == null)
-                        halt(401, "No or invalid token!");
+                        halt(401, "No token!");
 
                     if (userManager.getUserIdFromToken(token).isEmpty())
-                        halt(401, "No or invalid token!");
+                        halt(401, "Invalid token!");
 
                     return "{user: {}}";
                 });
             });
             path("/user", () -> {
-                post("/register", (request, response) -> {
-                    SignupRequest signupRequest = new Gson().fromJson(request.body(), SignupRequest.class);
-
-                    UserManager.RejectReason reason = userManager.createUser(signupRequest.getUsername(), signupRequest.getEmail(), signupRequest.getPassword());
-                    if (reason == UserManager.RejectReason.NONE) {
-                        return new Gson().toJson(new SuccessResponse(true));
-                    } else {
-                        return new Gson().toJson(new SuccessErrorResponse(false, reason.getErrorMessage()));
-                    }
-                });
+                post("/register", userManager::register);
                 post("/forgotpassword", (request, response) -> null);
-                post("/update", (request, response) -> null);
+                post("/update", userManager::update);
                 post("/delete", (request, response) -> null);
             });
             path("/restricted", () -> {
@@ -110,6 +101,14 @@ public class PistonVideoApplication {
                     throw new IllegalArgumentException("id missing");
 
                 return new Gson().toJson(userManager.generatePublicResponse(userId));
+            });
+            get("/uservideos", (request, response) -> {
+                String userId = request.queryParams("id");
+
+                if (userId == null)
+                    throw new IllegalArgumentException("id missing");
+
+                return new Gson().toJson(userManager.generatePublicVideosResponse(userId));
             });
         });
     }

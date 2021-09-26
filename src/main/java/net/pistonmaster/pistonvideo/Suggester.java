@@ -26,14 +26,14 @@ public class Suggester {
             MongoCollection<Document> collection = database.getCollection("videos");
 
             Bson projectionFields = Projections.fields(
-                    Projections.include("videoID", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
+                    Projections.include("videoId", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
                     Projections.excludeId());
 
             for (Document doc : collection.find().projection(projectionFields).limit(amount)) {
                 String uploader = doc.getString("uploader");
 
                 videos.add(new VideoResponse(
-                        doc.getString("videoID"),
+                        doc.getString("videoId"),
                         doc.getString("title"),
                         doc.getString("description"),
                         doc.getString("videoUrl"),
