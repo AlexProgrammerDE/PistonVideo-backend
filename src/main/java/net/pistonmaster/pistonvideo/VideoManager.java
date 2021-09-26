@@ -26,14 +26,16 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class VideoManager {
-    public final File uploadDir = new File("upload");
-    public final File staticDir = new File(uploadDir, "static");
-    private final File videoDir = new File(staticDir, "videos");
-    private final File thumbnailDir = new File(staticDir, "thumbnails");
+    public static final File uploadDir = new File("upload");
+    public static final File staticDir = new File(uploadDir, "static");
+    public static final File avatarDir = new File(staticDir, "avatars");
+    private static final File videoDir = new File(staticDir, "videos");
+    private static final File thumbnailDir = new File(staticDir, "thumbnails");
 
     public VideoManager() {
         uploadDir.mkdirs();
         staticDir.mkdirs();
+        avatarDir.mkdirs();
         videoDir.mkdirs();
         thumbnailDir.mkdirs();
     }

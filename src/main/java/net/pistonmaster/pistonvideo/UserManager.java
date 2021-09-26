@@ -15,9 +15,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
+import net.pistonmaster.pistonvideo.templates.auth.DataUpdateRequest;
+import net.pistonmaster.pistonvideo.templates.auth.InfoUpdateRequest;
 import net.pistonmaster.pistonvideo.templates.auth.SignupRequest;
-import net.pistonmaster.pistonvideo.templates.auth.UpdateRequest;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessErrorResponse;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -25,6 +27,12 @@ import org.bson.types.ObjectId;
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.Part;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -252,7 +260,7 @@ public class UserManager {
         }
     }
 
-    public String update(Request request, Response response) {
+    public String updateData(Request request, Response response) {
         String token = request.headers("Authorization");
 
         if (token == null)
@@ -262,7 +270,74 @@ public class UserManager {
         if (userId.isEmpty())
             return new Gson().toJson(new SuccessResponse(false));
 
-        UpdateRequest updateRequest = new Gson().fromJson(request.body(), UpdateRequest.class);
+        request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+
+        DataUpdateRequest dataUpdateRequest = new DataUpdateRequest(request.queryParams("bioSmall"), request.queryParams("bioBig"));
+
+        String avatarUrl = null;
+
+        try {
+            Part avatarFile = request.raw().getPart("avatar");
+
+            if (avatarFile != null && avatarFile.getSubmittedFileName().endsWith(".png")) {
+                String avatarId = IDGenerator.generateSixCharLong();
+
+                try (InputStream input = avatarFile.getInputStream()) {
+                    Files.copy(input, new File(VideoManager.avatarDir, avatarId + ".png").toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                avatarUrl = "/static/avatars/" + avatarId + ".png";
+            }
+        } catch (Exception ignored) {
+        }
+
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("users");
+
+            Document query = new Document().append("userid", userId.get());
+
+            List<Bson> updatesList = new ArrayList<>();
+
+            if (dataUpdateRequest.bioSmall() != null)
+                updatesList.add(Updates.set("bioSmall", dataUpdateRequest.bioSmall()));
+
+            if (dataUpdateRequest.bioBig() != null)
+                updatesList.add(Updates.set("bioBig", dataUpdateRequest.bioBig()));
+
+            if (avatarUrl != null)
+                updatesList.add(Updates.set("avatarUrl", avatarUrl));
+
+            if (!updatesList.isEmpty())
+                updatesList.add(Updates.currentTimestamp("lastUpdated"));
+
+            System.out.println(updatesList);
+
+            Bson updates = Updates.combine(updatesList);
+
+            UpdateOptions options = new UpdateOptions().upsert(false);
+            try {
+                UpdateResult result = collection.updateOne(query, updates, options);
+                System.out.println("Modified document count: " + result.getModifiedCount());
+            } catch (MongoException me) {
+                System.err.println("Unable to update due to an error: " + me);
+            }
+        }
+
+        return new Gson().toJson(new SuccessIDResponse(true, userId.get()));
+    }
+
+    public String updateInfo(Request request, Response response) {
+        String token = request.headers("Authorization");
+
+        if (token == null)
+            return new Gson().toJson(new SuccessResponse(false));
+
+        Optional<String> userId = getUserIdFromToken(token);
+        if (userId.isEmpty())
+            return new Gson().toJson(new SuccessResponse(false));
+
+        InfoUpdateRequest infoUpdateRequest = new Gson().fromJson(request.body(), InfoUpdateRequest.class);
 
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
@@ -272,20 +347,14 @@ public class UserManager {
 
             List<Bson> updatesList = new ArrayList<>();
 
-            if (updateRequest.getUsername() != null)
-                updatesList.add(Updates.set("username", updateRequest.getUsername()));
+            if (infoUpdateRequest.getUsername() != null)
+                updatesList.add(Updates.set("username", infoUpdateRequest.getUsername()));
 
-            if (updateRequest.getEmail() != null)
-                updatesList.add(Updates.set("email", updateRequest.getEmail()));
+            if (infoUpdateRequest.getEmail() != null)
+                updatesList.add(Updates.set("email", infoUpdateRequest.getEmail()));
 
-            if (updateRequest.getBioSmall() != null)
-                updatesList.add(Updates.set("bioSmall", updateRequest.getBioSmall()));
-
-            if (updateRequest.getBioBig() != null)
-                updatesList.add(Updates.set("bioBig", updateRequest.getBioBig()));
-
-            if (updateRequest.getOldPassword() != null && updateRequest.getNewPassword() != null && isValidPasswordForId(userId.get(), updateRequest.getOldPassword()))
-                updatesList.add(Updates.set("password", updateRequest.getNewPassword()));
+            if (infoUpdateRequest.getOldPassword() != null && infoUpdateRequest.getNewPassword() != null && isValidPasswordForId(userId.get(), infoUpdateRequest.getOldPassword()))
+                updatesList.add(Updates.set("password", infoUpdateRequest.getNewPassword()));
 
             if (!updatesList.isEmpty())
                 updatesList.add(Updates.currentTimestamp("lastUpdated"));
@@ -301,6 +370,6 @@ public class UserManager {
             }
         }
 
-        return new Gson().toJson(new SuccessResponse(true));
+        return new Gson().toJson(new SuccessIDResponse(true, userId.get()));
     }
 }

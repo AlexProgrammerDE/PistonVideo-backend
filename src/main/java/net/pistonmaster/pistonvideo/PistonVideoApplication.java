@@ -5,9 +5,6 @@ import com.google.gson.Gson;
 import lombok.Getter;
 import net.pistonmaster.pistonvideo.templates.*;
 import net.pistonmaster.pistonvideo.templates.auth.LoginRequest;
-import net.pistonmaster.pistonvideo.templates.auth.SignupRequest;
-import net.pistonmaster.pistonvideo.templates.simple.SuccessErrorResponse;
-import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.simple.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +34,7 @@ public class PistonVideoApplication {
 
         port(3434);
 
-        externalStaticFileLocation(videoManager.uploadDir.getAbsolutePath());
+        externalStaticFileLocation(VideoManager.uploadDir.getAbsolutePath());
 
         before("/*", (q, a) -> System.out.println("A call"));
         path("/api", () -> {
@@ -72,9 +69,10 @@ public class PistonVideoApplication {
             });
             path("/user", () -> {
                 post("/register", userManager::register);
-                post("/forgotpassword", (request, response) -> null);
-                post("/update", userManager::update);
-                post("/delete", (request, response) -> null);
+                post("/forgotpassword", (request, response) -> null); // TODO
+                post("/updatedata", userManager::updateData);
+                post("/updateinfo", userManager::updateInfo);
+                post("/delete", (request, response) -> null); // TODO
             });
             path("/restricted", () -> {
                 before((request, response) -> {
@@ -88,8 +86,8 @@ public class PistonVideoApplication {
                 });
                 path("/video", () -> {
                     post("/create", videoManager::upload);
-                    post("/update", (request, response) -> null);
-                    post("/delete", (request, response) -> null);
+                    post("/update", (request, response) -> null); // TODO
+                    post("/delete", (request, response) -> null); // TODO
                 });
             });
             get("/videodata", videoManager::videoData);
