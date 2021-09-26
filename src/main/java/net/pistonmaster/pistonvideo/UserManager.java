@@ -180,7 +180,7 @@ public class UserManager {
                     .first();
 
             if (doc == null)
-                return null;
+                return PistonVideoApplication.DELETED_USER;
 
             return new PublicUserResponse(doc.getString("username"), userid, doc.getString("avatarUrl"));
         }

@@ -103,7 +103,7 @@ public class VideoManager {
                     .first();
 
             if (doc == null)
-                return "{}";
+                return new Gson().toJson(PistonVideoApplication.DELETED_VIDEO);
 
             String uploader = doc.getString("uploader");
 

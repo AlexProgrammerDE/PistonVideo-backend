@@ -23,6 +23,8 @@ public class PistonVideoApplication {
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
     private static final Suggester suggester = new Suggester();
     public static final VideoResponse NYAN_CAT = new VideoResponse("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"}, new PublicUserResponse("Pistonmaster", "", "/avatars/"));
+    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", "/static/avatars/blank.png");
+    public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER);
 
     public static void main(String[] args) {
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
