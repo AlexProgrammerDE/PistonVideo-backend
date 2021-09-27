@@ -4,4 +4,4 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = 'pistonvideo'
+rootProject.name = "pistonvideo"
