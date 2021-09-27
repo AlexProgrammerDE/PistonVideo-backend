@@ -262,7 +262,6 @@ public class UserManager {
 
     public String updateData(Request request, Response response) {
         String token = request.headers("Authorization");
-
         if (token == null)
             return new Gson().toJson(new SuccessResponse(false));
 
@@ -311,8 +310,6 @@ public class UserManager {
             if (!updatesList.isEmpty())
                 updatesList.add(Updates.currentTimestamp("lastUpdated"));
 
-            System.out.println(updatesList);
-
             Bson updates = Updates.combine(updatesList);
 
             UpdateOptions options = new UpdateOptions().upsert(false);
@@ -329,7 +326,6 @@ public class UserManager {
 
     public String updateInfo(Request request, Response response) {
         String token = request.headers("Authorization");
-
         if (token == null)
             return new Gson().toJson(new SuccessResponse(false));
 
@@ -343,7 +339,7 @@ public class UserManager {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("users");
 
-            Document query = new Document().append("userId", userId.get());
+            Document query = new Document().append("userid", userId.get());
 
             List<Bson> updatesList = new ArrayList<>();
 
