@@ -4,7 +4,7 @@ plugins {
 
 group = "net.pistonmaster"
 version = "0.0.1-SNAPSHOT"
-//sourceCompatibility = "16"
+sourceCompatibility = "16"
 
 repositories {
     mavenCentral()
