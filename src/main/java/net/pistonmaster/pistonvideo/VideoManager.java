@@ -91,6 +91,10 @@ public class VideoManager {
         return getVideoData(request.queryParams("id"));
     }
 
+    public String privateVideoData(Request request, Response response) throws Exception { // TODO
+        return getVideoData(request.queryParams("id"));
+    }
+
     private String getVideoData(String videoId) {
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");

@@ -89,6 +89,7 @@ public class PistonVideoApplication {
                     post("/update", (request, response) -> null); // TODO
                     post("/delete", (request, response) -> null); // TODO
                 });
+                get("/privatevideodata", videoManager::privateVideoData);
             });
             get("/videodata", videoManager::videoData);
             get("/suggestions", suggester::suggestions);

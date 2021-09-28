@@ -1,5 +1,6 @@
 package net.pistonmaster.pistonvideo;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
@@ -145,6 +146,10 @@ public class UserManager {
     }
 
     public RejectReason createUser(String username, String email, String password) {
+        Preconditions.checkNotNull(username, "username is null!");
+        Preconditions.checkNotNull(username, "email is null!");
+        Preconditions.checkNotNull(username, "password is null!");
+
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("users");
