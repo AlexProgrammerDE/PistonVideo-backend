@@ -61,10 +61,11 @@ public class PistonVideoApplication {
                     if (token == null)
                         halt(401, "No token!");
 
-                    if (userManager.getUserIdFromToken(token).isEmpty())
+                    Optional<String> userId = userManager.getUserIdFromToken(token);
+                    if (userId.isEmpty())
                         halt(401, "Invalid token!");
 
-                    return "{user: {}}";
+                    return new Gson().toJson(new UserDataLoginResponse(new UserDataLoginResponse.UserData(userId.get())));
                 });
             });
             path("/user", () -> {
