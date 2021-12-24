@@ -4,11 +4,11 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
 import lombok.Getter;
 import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
-import net.pistonmaster.pistonvideo.templates.UserDataLoginResponse;
+import net.pistonmaster.pistonvideo.templates.UserIDResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.ory.kratos.ApiClient;
+
 import java.util.Optional;
 
 import static spark.Spark.*;
@@ -36,62 +36,46 @@ public class PistonVideoApplication {
 
         externalStaticFileLocation(VideoManager.uploadDir.getAbsolutePath());
 
-
-
         before("/*", (q, a) -> System.out.println("A call"));
-        path("/api", () -> {
-            path("/auth", () -> {
-                get("/user", (request, response) -> {
-                    String token = request.cookie("ory_kratos_session");
+        path("/user", () -> {
+            get("/id", (request, response) -> {
+                Optional<String> userId = userManager.getUserIdFromToken(request);
+                if (userId.isEmpty())
+                    halt(401, "Invalid token!");
 
-                    if (token == null)
-                        halt(401, "No token!");
-
-                    Optional<String> userId = userManager.getUserIdFromToken(token);
-                    if (userId.isEmpty())
-                        halt(401, "Invalid token!");
-
-                    return new Gson().toJson(new UserDataLoginResponse(new UserDataLoginResponse.UserData(userId.get())));
-                });
+                return new Gson().toJson(new UserIDResponse(userId.get()));
             });
-            path("/user", () -> {
-                post("/updatedata", userManager::updateData);
+            post("/updatedata", userManager::updateData);
+        });
+        path("/restricted", () -> {
+            before((request, response) -> {
+                if (userManager.getUserIdFromToken(request).isEmpty())
+                    halt(401, "No or invalid token!");
             });
-            path("/restricted", () -> {
-                before((request, response) -> {
-                    String token = request.headers("Authorization");
-
-                    if (token == null)
-                        halt(401, "No or invalid token!");
-
-                    if (userManager.getUserIdFromToken(token).isEmpty())
-                        halt(401, "No or invalid token!");
-                });
-                path("/video", () -> {
-                    post("/create", videoManager::upload);
-                    post("/update", (request, response) -> null); // TODO
-                    post("/delete", (request, response) -> null); // TODO
-                });
-                get("/privatevideodata", videoManager::privateVideoData);
+            path("/video", () -> {
+                post("/create", videoManager::upload);
+                post("/update", (request, response) -> null); // TODO
+                post("/delete", (request, response) -> null); // TODO
             });
-            get("/videodata", videoManager::videoData);
-            get("/suggestions", suggester::suggestions);
-            get("/userdata", (request, response) -> {
-                String userId = request.queryParams("id");
+            get("/privatevideodata", videoManager::privateVideoData);
+        });
+        get("/videodata", videoManager::videoData);
+        get("/suggestions", suggester::suggestions);
+        get("/userdata", (request, response) -> {
+            String userId = request.queryParams("id");
 
-                if (userId == null)
-                    throw new IllegalArgumentException("id missing");
+            if (userId == null)
+                throw new IllegalArgumentException("id missing");
 
-                return new Gson().toJson(userManager.generatePublicResponse(userId));
-            });
-            get("/uservideos", (request, response) -> {
-                String userId = request.queryParams("id");
+            return new Gson().toJson(userManager.generatePublicResponse(userId));
+        });
+        get("/uservideos", (request, response) -> {
+            String userId = request.queryParams("id");
 
-                if (userId == null)
-                    throw new IllegalArgumentException("id missing");
+            if (userId == null)
+                throw new IllegalArgumentException("id missing");
 
-                return new Gson().toJson(userManager.generatePublicVideosResponse(userId));
-            });
+            return new Gson().toJson(userManager.generatePublicVideosResponse(userId));
         });
     }
 }

@@ -35,7 +35,18 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserManager {
+    public Optional<String> getUserIdFromToken(Request request) {
+        return getUserIdFromToken(request.cookie("ory_kratos_session"));
+    }
+
     public Optional<String> getUserIdFromToken(String token) {
+        return getWhoisFromToken(token).map(WhoisResponse::getId);
+    }
+
+    private Optional<WhoisResponse> getWhoisFromToken(String token) {
+        if (token == null)
+            return Optional.empty();
+
         try {
             OkHttpClient client = new OkHttpClient().newBuilder().addInterceptor(chain -> {
                 final okhttp3.Request original = chain.request();
@@ -58,7 +69,7 @@ public class UserManager {
             } else {
                 WhoisResponse whoisResponse = new Gson().fromJson(body.string(), WhoisResponse.class);
 
-                return Optional.ofNullable(whoisResponse.getId());
+                return Optional.of(whoisResponse);
             }
         } catch (IOException e) {
             return Optional.empty();
@@ -110,11 +121,7 @@ public class UserManager {
     }
 
     public String updateData(Request request, Response response) {
-        String token = request.headers("Authorization");
-        if (token == null)
-            return new Gson().toJson(new SuccessResponse(false));
-
-        Optional<String> userId = getUserIdFromToken(token);
+        Optional<String> userId = getUserIdFromToken(request);
         if (userId.isEmpty())
             return new Gson().toJson(new SuccessResponse(false));
 
@@ -170,6 +177,6 @@ public class UserManager {
             }
         }
 
-        return new Gson().toJson(new SuccessIDResponse(true, userId.get()));
+        return new Gson().toJson(new SuccessResponse(true));
     }
 }

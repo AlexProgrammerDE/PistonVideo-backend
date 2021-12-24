@@ -94,7 +94,7 @@ public class VideoManager {
                         .append("videoUrl", "/static/videos/" + id + ".mp4")
                         .append("thumbnailUrl", "/static/thumbnails/" + id + ".png")
                         .append("tags", List.of())
-                        .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request.headers("Authorization")).get()));
+                        .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request).get()));
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
             } catch (MongoException me) {
                 System.err.println("Unable to insert due to an error: " + me);
