@@ -8,9 +8,9 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.InsertOneResult;
+import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
-import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -38,6 +38,24 @@ public class VideoManager {
         avatarDir.mkdirs();
         videoDir.mkdirs();
         thumbnailDir.mkdirs();
+    }
+
+    public static Bson videoProjection() {
+        return Projections.fields(
+                Projections.include("videoId", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
+                Projections.excludeId());
+    }
+
+    public static VideoResponse generateResponse(Document doc) {
+        String uploader = doc.getString("uploader");
+
+        return new VideoResponse(doc.getString("videoId"),
+                doc.getString("title"),
+                doc.getString("description"),
+                doc.getString("videoUrl"),
+                doc.getString("thumbnailUrl"),
+                doc.getList("tags", String.class).toArray(new String[0]),
+                PistonVideoApplication.getUserManager().generatePublicResponse(uploader));
     }
 
     public String upload(Request request, Response response) throws Exception {
@@ -111,23 +129,5 @@ public class VideoManager {
 
             return new Gson().toJson(generateResponse(doc));
         }
-    }
-
-    public static Bson videoProjection() {
-        return Projections.fields(
-                Projections.include("videoId", "title", "description", "videoUrl", "thumbnailUrl", "tags", "uploader"),
-                Projections.excludeId());
-    }
-
-    public static VideoResponse generateResponse(Document doc) {
-        String uploader = doc.getString("uploader");
-
-        return new VideoResponse(doc.getString("videoId"),
-                doc.getString("title"),
-                doc.getString("description"),
-                doc.getString("videoUrl"),
-                doc.getString("thumbnailUrl"),
-                doc.getList("tags", String.class).toArray(new String[0]),
-                PistonVideoApplication.getUserManager().generatePublicResponse(uploader));
     }
 }

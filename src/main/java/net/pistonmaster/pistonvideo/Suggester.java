@@ -43,7 +43,7 @@ public class Suggester {
             }
 
             Random random = new Random();
-            while (videos.size() < amount) {
+            while (!videos.isEmpty() && videos.size() < amount) {
                 videos.add(videos.get(random.nextInt(videos.size())));
             }
 

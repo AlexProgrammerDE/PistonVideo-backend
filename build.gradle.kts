@@ -11,13 +11,17 @@ repositories {
 
 dependencies {
     implementation("com.sparkjava:spark-core:2.9.3")
-    implementation("ch.qos.logback:logback-classic:1.2.8")
+    implementation("ch.qos.logback:logback-classic:1.2.9")
     implementation("org.mongodb:mongodb-driver-sync:4.4.0")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.google.guava:guava:31.0.1-jre")
 
     compileOnly("org.projectlombok:lombok:1.18.22")
     annotationProcessor("org.projectlombok:lombok:1.18.22")
+
+    implementation("sh.ory.kratos:kratos-client:0.8.0-alpha.2")
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
 }
 
 application {
