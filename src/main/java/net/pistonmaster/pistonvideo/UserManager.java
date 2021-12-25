@@ -70,8 +70,6 @@ public class UserManager {
         } else {
             return PistonVideoApplication.DELETED_USER;
         }
-
-
     }
 
     public VideoResponse[] generatePublicVideosResponse(String userid) {

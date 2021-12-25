@@ -45,7 +45,7 @@ public class PistonVideoApplication {
             if (userId.isEmpty())
                 halt(401, "Invalid token!");
 
-            return new Gson().toJson(userManager.generatePublicVideosResponse(userId.get()));
+            return new Gson().toJson(userManager.generatePublicResponse(userId.get()));
         });
         path("/user", () -> {
             get("/id", (request, response) -> {
