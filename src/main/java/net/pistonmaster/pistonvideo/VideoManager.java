@@ -52,8 +52,8 @@ public class VideoManager {
         return new VideoResponse(doc.getString("videoId"),
                 doc.getString("title"),
                 doc.getString("description"),
-                doc.getString("videoUrl"),
-                doc.getString("thumbnailUrl"),
+                formatVideoToURL(doc.getString("videoUrl")),
+                formatThumbnailToURL(doc.getString("thumbnailUrl")),
                 doc.getList("tags", String.class).toArray(new String[0]),
                 PistonVideoApplication.getUserManager().generatePublicResponse(uploader));
     }
@@ -106,6 +106,7 @@ public class VideoManager {
     }
 
     public String videoData(Request request, Response response) throws Exception {
+
         return getVideoData(request.queryParams("id"));
     }
 
@@ -114,6 +115,7 @@ public class VideoManager {
     }
 
     private String getVideoData(String videoId) {
+        System.out.println(videoId);
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("videos");
