@@ -57,8 +57,4 @@ public class Suggester {
             return new Gson().toJson(videos);
         }
     }
-
-    private String formatImageToURL(String image) {
-        return "/backend/static/" + image;
-    }
 }

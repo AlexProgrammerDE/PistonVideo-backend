@@ -67,7 +67,6 @@ public class OryManager {
                 return Optional.empty();
             } else {
                 String bodyString = body.string();
-                System.out.println(bodyString);
                 IdentityResponse identityResponse = new Gson().fromJson(bodyString, IdentityResponse.class);
 
                 if (identityResponse.getError() != null) {

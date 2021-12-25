@@ -45,8 +45,6 @@ public class UserManager {
     public PublicUserResponse generatePublicResponse(String userid) {
         Optional<IdentityResponse> optional = OryManager.getIdentity(userid);
 
-        System.out.println(optional.isPresent());
-
         if (optional.isPresent()) {
             IdentityResponse identityResponse = optional.get();
 

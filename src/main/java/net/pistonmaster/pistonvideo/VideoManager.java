@@ -115,7 +115,6 @@ public class VideoManager {
     }
 
     private String getVideoData(String videoId) {
-        System.out.println(videoId);
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("videos");
