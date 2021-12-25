@@ -91,8 +91,8 @@ public class VideoManager {
                         .append("videoId", id)
                         .append("title", request.queryParams("title"))
                         .append("description", request.queryParams("description"))
-                        .append("videoUrl", formatVideoToURL(id + ".mp4"))
-                        .append("thumbnailUrl", formatThumbnailToURL(id + ".png"))
+                        .append("videoUrl", id + ".mp4")
+                        .append("thumbnailUrl", id + ".png")
                         .append("tags", List.of())
                         .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request).get()));
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
