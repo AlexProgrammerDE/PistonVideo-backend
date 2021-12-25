@@ -91,8 +91,8 @@ public class VideoManager {
                         .append("videoId", id)
                         .append("title", request.queryParams("title"))
                         .append("description", request.queryParams("description"))
-                        .append("videoUrl", "/static/videos/" + id + ".mp4")
-                        .append("thumbnailUrl", "/static/thumbnails/" + id + ".png")
+                        .append("videoUrl", formatVideoToURL(id + ".mp4"))
+                        .append("thumbnailUrl", formatThumbnailToURL(id + ".png"))
                         .append("tags", List.of())
                         .append("uploader", PistonVideoApplication.getUserManager().getUserIdFromToken(request).get()));
                 System.out.println("Success! Inserted document id: " + result.getInsertedId());
@@ -129,5 +129,17 @@ public class VideoManager {
 
             return new Gson().toJson(generateResponse(doc));
         }
+    }
+
+    public static String formatVideoToURL(String video) {
+        return "/backend/static/videos/" + video;
+    }
+
+    public static String formatThumbnailToURL(String image) {
+        return "/backend/static/thumbnails/" + image;
+    }
+
+    public static String formatAvatarToURL(String avatar) {
+        return "/backend/static/avatars/" + avatar;
     }
 }

@@ -11,12 +11,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+import static net.pistonmaster.pistonvideo.VideoManager.*;
 import static spark.Spark.*;
 
 public class PistonVideoApplication {
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
-    public static final VideoResponse NYAN_CAT = new VideoResponse("nyan", "Nyan Cat", "Meow meow meow", "/static/videos/nyan.mp4", "/static/thumbnails/nyan.png", new String[]{"meow", "nyan", "owo"}, new PublicUserResponse("Pistonmaster", "", "/avatars/", ""));
-    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", "/static/avatars/blank.png", "");
+    public static final VideoResponse NYAN_CAT = new VideoResponse("nyan", "Nyan Cat", "Meow meow meow", formatVideoToURL("nyan.mp4"), formatThumbnailToURL("nyan.png"), new String[]{"meow", "nyan", "owo"}, new PublicUserResponse("Pistonmaster", "941ed1b3-e533-4bca-b1e4-24370872ce86", formatAvatarToURL("70a1b5.png"), ""));
+    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", formatAvatarToURL("blank.png"), "");
+    public static final PublicUserResponse DEFAULT_USER = new PublicUserResponse("Default User", "default", formatAvatarToURL("blank.png"), "");
     public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER);
     @Getter
     private static final UserManager userManager = new UserManager();
@@ -37,6 +39,14 @@ public class PistonVideoApplication {
         externalStaticFileLocation(VideoManager.uploadDir.getAbsolutePath());
 
         before("/*", (q, a) -> System.out.println("A call"));
+
+        get("/me", (request, response) -> {
+            Optional<String> userId = userManager.getUserIdFromToken(request);
+            if (userId.isEmpty())
+                halt(401, "Invalid token!");
+
+            return new Gson().toJson(userManager.generatePublicVideosResponse(userId.get()));
+        });
         path("/user", () -> {
             get("/id", (request, response) -> {
                 Optional<String> userId = userManager.getUserIdFromToken(request);

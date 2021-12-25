@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static net.pistonmaster.pistonvideo.VideoManager.formatThumbnailToURL;
+import static net.pistonmaster.pistonvideo.VideoManager.formatVideoToURL;
+
 public class Suggester {
     public String suggestions(Request request, Response response) {
         String param = request.queryParams("amount");
@@ -36,8 +39,8 @@ public class Suggester {
                         doc.getString("videoId"),
                         doc.getString("title"),
                         doc.getString("description"),
-                        doc.getString("videoUrl"),
-                        doc.getString("thumbnailUrl"),
+                        formatVideoToURL(doc.getString("videoUrl")),
+                        formatThumbnailToURL(doc.getString("thumbnailUrl")),
                         doc.getList("tags", String.class).toArray(new String[0]),
                         PistonVideoApplication.getUserManager().generatePublicResponse(uploader)));
             }
@@ -53,5 +56,9 @@ public class Suggester {
 
             return new Gson().toJson(videos);
         }
+    }
+
+    private String formatImageToURL(String image) {
+        return "/backend/static/" + image;
     }
 }

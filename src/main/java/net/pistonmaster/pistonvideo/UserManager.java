@@ -12,12 +12,10 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
-import net.pistonmaster.pistonvideo.templates.auth.DataUpdateRequest;
-import net.pistonmaster.pistonvideo.templates.auth.WhoisResponse;
-import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
+import net.pistonmaster.pistonvideo.templates.kratos.IdentityResponse;
+import net.pistonmaster.pistonvideo.templates.kratos.WhoisResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
-import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
+import net.pistonmaster.pistonvideo.templates.user.DataUpdateRequest;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import spark.Request;
@@ -26,7 +24,6 @@ import spark.Response;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.Part;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -34,66 +31,49 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static net.pistonmaster.pistonvideo.PistonVideoApplication.DEFAULT_USER;
+
 public class UserManager {
     public Optional<String> getUserIdFromToken(Request request) {
         return getUserIdFromToken(request.cookie("ory_kratos_session"));
     }
 
     public Optional<String> getUserIdFromToken(String token) {
-        return getWhoisFromToken(token).map(WhoisResponse::getId);
-    }
-
-    private Optional<WhoisResponse> getWhoisFromToken(String token) {
-        if (token == null)
-            return Optional.empty();
-
-        try {
-            OkHttpClient client = new OkHttpClient().newBuilder().addInterceptor(chain -> {
-                final okhttp3.Request original = chain.request();
-                final okhttp3.Request authorized = original.newBuilder()
-                        .addHeader("Cookie", "ory_kratos_session=" + token)
-                        .build();
-                return chain.proceed(authorized);
-            }).build();
-
-            okhttp3.Request request = new okhttp3.Request.Builder()
-                    .url("https://pistonvideo.com/api/.ory/sessions/whoami")
-                    .build(); // defaults to GET
-
-            okhttp3.Response response = client.newCall(request).execute();
-
-            ResponseBody body = response.body();
-
-            if (body == null || response.code() == 401) {
-                return Optional.empty();
-            } else {
-                WhoisResponse whoisResponse = new Gson().fromJson(body.string(), WhoisResponse.class);
-
-                return Optional.of(whoisResponse);
-            }
-        } catch (IOException e) {
-            return Optional.empty();
-        }
+        return OryManager.getWhoisFromToken(token).map(WhoisResponse::getId);
     }
 
     public PublicUserResponse generatePublicResponse(String userid) {
-        try (MongoClient client = DBManager.getMongoClient()) {
-            MongoDatabase database = client.getDatabase("pistonvideo");
-            MongoCollection<Document> collection = database.getCollection("users");
+        Optional<IdentityResponse> optional = OryManager.getIdentity(userid);
 
-            Bson projectionFields = Projections.fields(
-                    Projections.include("userid", "username", "avatarUrl", "bioSmall"),
-                    Projections.excludeId());
+        System.out.println(optional.isPresent());
 
-            Document doc = collection.find(Filters.eq("userid", userid))
-                    .projection(projectionFields)
-                    .first();
+        if (optional.isPresent()) {
+            IdentityResponse identityResponse = optional.get();
 
-            if (doc == null)
-                return PistonVideoApplication.DELETED_USER;
+            try (MongoClient client = DBManager.getMongoClient()) {
+                MongoDatabase database = client.getDatabase("pistonvideo");
+                MongoCollection<Document> collection = database.getCollection("users");
 
-            return new PublicUserResponse(doc.getString("username"), userid, doc.getString("avatarUrl"), doc.getString("bioSmall"));
+                Bson projectionFields = Projections.fields(
+                        Projections.include("userid", "avatarUrl", "bioSmall"),
+                        Projections.excludeId());
+
+                Document doc = collection.find(Filters.eq("userid", userid))
+                        .projection(projectionFields)
+                        .first();
+
+                if (doc == null) {
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall());
+
+                } else {
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, doc.getString("avatarUrl"), doc.getString("bioSmall"));
+                }
+            }
+        } else {
+            return PistonVideoApplication.DELETED_USER;
         }
+
+
     }
 
     public VideoResponse[] generatePublicVideosResponse(String userid) {
