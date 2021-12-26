@@ -14,6 +14,7 @@ import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import net.pistonmaster.pistonvideo.templates.kratos.IdentityResponse;
 import net.pistonmaster.pistonvideo.templates.kratos.WhoisResponse;
+import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
 import net.pistonmaster.pistonvideo.templates.user.DataUpdateRequest;
 import org.bson.Document;
@@ -62,9 +63,11 @@ public class UserManager {
 
                 if (doc == null) {
                     return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall());
-
                 } else {
-                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, doc.getString("avatarUrl"), doc.getString("bioSmall"));
+                    String avatarUrl = Optional.ofNullable(doc.getString("avatarUrl")).orElse(DEFAULT_USER.avatarUrl());
+                    String bioSmall = Optional.ofNullable(doc.getString("bioSmall")).orElse(DEFAULT_USER.bioSmall());
+
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall);
                 }
             }
         } else {
@@ -117,7 +120,7 @@ public class UserManager {
                     Files.copy(input, new File(VideoManager.avatarDir, avatarId + ".png").toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
 
-                avatarUrl = "/static/avatars/" + avatarId + ".png";
+                avatarUrl = avatarId + ".png";
             }
         } catch (Exception ignored) {
         }
@@ -153,6 +156,6 @@ public class UserManager {
             }
         }
 
-        return new Gson().toJson(new SuccessResponse(true));
+        return new Gson().toJson(new SuccessIDResponse(true, userId.get()));
     }
 }
