@@ -54,7 +54,7 @@ public class UserManager {
                 MongoCollection<Document> collection = database.getCollection("users");
 
                 Bson projectionFields = Projections.fields(
-                        Projections.include("userid", "avatarUrl", "bioSmall"),
+                        Projections.include("userid", "avatarUrl", "bioSmall", "bioBig"),
                         Projections.excludeId());
 
                 Document doc = collection.find(Filters.eq("userid", userid))
@@ -62,12 +62,13 @@ public class UserManager {
                         .first();
 
                 if (doc == null) {
-                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall());
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall(), DEFAULT_USER.bioBig());
                 } else {
                     String avatarUrl = Optional.ofNullable(doc.getString("avatarUrl")).map(VideoManager::formatAvatarToURL).orElse(DEFAULT_USER.avatarUrl());
                     String bioSmall = Optional.ofNullable(doc.getString("bioSmall")).orElse(DEFAULT_USER.bioSmall());
+                    String bioBig = Optional.ofNullable(doc.getString("bioBig")).orElse(DEFAULT_USER.bioBig());
 
-                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall);
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall, bioBig);
                 }
             }
         } else {
