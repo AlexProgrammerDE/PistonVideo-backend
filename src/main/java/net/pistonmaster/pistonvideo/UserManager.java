@@ -54,21 +54,26 @@ public class UserManager {
                 MongoCollection<Document> collection = database.getCollection("users");
 
                 Bson projectionFields = Projections.fields(
-                        Projections.include("userid", "avatarUrl", "bioSmall", "bioBig"),
+                        Projections.include("userId", "avatarUrl", "bioSmall", "bioBig", "badges"),
                         Projections.excludeId());
 
-                Document doc = collection.find(Filters.eq("userid", userid))
+                Document doc = collection.find(Filters.eq("userId", userid))
                         .projection(projectionFields)
                         .first();
 
+                System.out.println(doc);
+
                 if (doc == null) {
-                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall(), DEFAULT_USER.bioBig());
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall(), DEFAULT_USER.bioBig(), DEFAULT_USER.badges());
                 } else {
                     String avatarUrl = Optional.ofNullable(doc.getString("avatarUrl")).map(VideoManager::formatAvatarToURL).orElse(DEFAULT_USER.avatarUrl());
                     String bioSmall = Optional.ofNullable(doc.getString("bioSmall")).orElse(DEFAULT_USER.bioSmall());
                     String bioBig = Optional.ofNullable(doc.getString("bioBig")).orElse(DEFAULT_USER.bioBig());
+                    List<String> badges = Optional.ofNullable(doc.getList("badges", String.class)).orElse(DEFAULT_USER.badges());
 
-                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall, bioBig);
+                    System.out.println(badges);
+
+                    return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall, bioBig, badges);
                 }
             }
         } else {
@@ -130,7 +135,7 @@ public class UserManager {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("users");
 
-            Document query = new Document().append("userid", userId.get());
+            Document query = new Document().append("userId", userId.get());
 
             List<Bson> updatesList = new ArrayList<>();
 

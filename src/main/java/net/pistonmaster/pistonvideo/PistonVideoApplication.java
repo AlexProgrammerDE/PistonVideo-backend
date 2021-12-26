@@ -9,6 +9,7 @@ import net.pistonmaster.pistonvideo.templates.VideoResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static net.pistonmaster.pistonvideo.VideoManager.*;
@@ -16,8 +17,8 @@ import static spark.Spark.*;
 
 public class PistonVideoApplication {
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
-    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", formatAvatarToURL("blank.png"), "", "");
-    public static final PublicUserResponse DEFAULT_USER = new PublicUserResponse("Default User", "default", formatAvatarToURL("blank.png"), "", "");
+    public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", formatAvatarToURL("blank.png"), "", "", new ArrayList<>());
+    public static final PublicUserResponse DEFAULT_USER = new PublicUserResponse("Default User", "default", formatAvatarToURL("blank.png"), "", "", new ArrayList<>());
     public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER);
     @Getter
     private static final UserManager userManager = new UserManager();
