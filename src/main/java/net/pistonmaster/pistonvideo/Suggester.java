@@ -50,10 +50,6 @@ public class Suggester {
                 videos.add(videos.get(random.nextInt(videos.size())));
             }
 
-            videos.add(PistonVideoApplication.NYAN_CAT);
-            videos.add(PistonVideoApplication.NYAN_CAT);
-            videos.add(PistonVideoApplication.NYAN_CAT);
-
             return new Gson().toJson(videos);
         }
     }
