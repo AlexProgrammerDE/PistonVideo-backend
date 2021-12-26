@@ -27,7 +27,13 @@ public class PistonVideoApplication {
 
     public static void main(String[] args) {
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
-        DBManager.init(args[0], args[1], args[2], Integer.parseInt(args[3]));
+        String username = System.getenv("USERNAME");
+        String password = System.getenv("PASSWORD");
+
+        String host = Optional.ofNullable(System.getenv("HOST")).orElse("localhost");
+        int port = Optional.ofNullable(System.getenv("PORT")).map(Integer::parseInt).orElse(27017);
+
+        DBManager.init(username, password, host, port);
 
         int maxThreads = 8;
         int minThreads = 2;
