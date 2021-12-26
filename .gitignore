@@ -36,4 +36,10 @@ out/
 ### VS Code ###
 .vscode/
 
-upload/
+upload/static/avatars/*
+upload/static/thumbnails/*
+upload/static/videos/*
+
+!upload/static/avatars/default.png
+!upload/static/thumbnails/nyan.png
+!upload/static/videos/nyan.mp4
