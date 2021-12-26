@@ -64,7 +64,7 @@ public class UserManager {
                 if (doc == null) {
                     return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall());
                 } else {
-                    String avatarUrl = Optional.ofNullable(doc.getString("avatarUrl")).orElse(DEFAULT_USER.avatarUrl());
+                    String avatarUrl = Optional.ofNullable(doc.getString("avatarUrl")).map(VideoManager::formatAvatarToURL).orElse(DEFAULT_USER.avatarUrl());
                     String bioSmall = Optional.ofNullable(doc.getString("bioSmall")).orElse(DEFAULT_USER.bioSmall());
 
                     return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall);
@@ -147,7 +147,7 @@ public class UserManager {
 
             Bson updates = Updates.combine(updatesList);
 
-            UpdateOptions options = new UpdateOptions().upsert(false);
+            UpdateOptions options = new UpdateOptions().upsert(true);
             try {
                 UpdateResult result = collection.updateOne(query, updates, options);
                 System.out.println("Modified document count: " + result.getModifiedCount());
