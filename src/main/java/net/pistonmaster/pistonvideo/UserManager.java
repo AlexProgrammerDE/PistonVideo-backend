@@ -39,7 +39,7 @@ public class UserManager {
     }
 
     public Optional<String> getUserIdFromToken(String token) {
-        return OryManager.getWhoisFromToken(token).map(WhoisResponse::getId);
+        return OryManager.getWhoisFromToken(token).map(WhoisResponse::getIdentity).map(IdentityResponse::getId);
     }
 
     public PublicUserResponse generatePublicResponse(String userid) {
