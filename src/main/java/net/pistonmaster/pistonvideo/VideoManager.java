@@ -105,12 +105,11 @@ public class VideoManager {
         return new Gson().toJson(new SuccessIDResponse(true, id));
     }
 
-    public String videoData(Request request, Response response) throws Exception {
-
+    public String videoData(Request request, Response response) {
         return getVideoData(request.queryParams("id"));
     }
 
-    public String privateVideoData(Request request, Response response) throws Exception { // TODO
+    public String privateVideoData(Request request, Response response) { // TODO
         return getVideoData(request.queryParams("id"));
     }
 

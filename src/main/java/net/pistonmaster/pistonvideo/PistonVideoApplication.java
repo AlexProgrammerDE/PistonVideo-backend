@@ -24,6 +24,8 @@ public class PistonVideoApplication {
     private static final UserManager userManager = new UserManager();
     private static final VideoManager videoManager = new VideoManager();
     private static final Suggester suggester = new Suggester();
+    public static final String FFMPEG_PATH = Helpers.findExecutableOnPath("ffmpeg");
+    public static final String FFPROBE_PATH = Helpers.findExecutableOnPath("ffprobe");
 
     public static void main(String[] args) {
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);

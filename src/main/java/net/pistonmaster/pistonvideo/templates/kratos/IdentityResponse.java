@@ -8,7 +8,5 @@ public class IdentityResponse {
     private Traits traits;
     private String created_at;
     private Error error;
-
-
 }
 

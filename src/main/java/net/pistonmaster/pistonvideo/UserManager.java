@@ -47,6 +47,8 @@ public class UserManager {
         Optional<IdentityResponse> optional = OryManager.getIdentity(userid);
 
         if (optional.isPresent()) {
+            System.out.println(optional.get());
+
             IdentityResponse identityResponse = optional.get();
 
             try (MongoClient client = DBManager.getMongoClient()) {
@@ -61,8 +63,6 @@ public class UserManager {
                         .projection(projectionFields)
                         .first();
 
-                System.out.println(doc);
-
                 if (doc == null) {
                     return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, DEFAULT_USER.avatarUrl(), DEFAULT_USER.bioSmall(), DEFAULT_USER.bioBig(), DEFAULT_USER.badges());
                 } else {
@@ -70,8 +70,6 @@ public class UserManager {
                     String bioSmall = Optional.ofNullable(doc.getString("bioSmall")).orElse(DEFAULT_USER.bioSmall());
                     String bioBig = Optional.ofNullable(doc.getString("bioBig")).orElse(DEFAULT_USER.bioBig());
                     List<String> badges = Optional.ofNullable(doc.getList("badges", String.class)).orElse(DEFAULT_USER.badges());
-
-                    System.out.println(badges);
 
                     return new PublicUserResponse(identityResponse.getTraits().getUsername(), userid, avatarUrl, bioSmall, bioBig, badges);
                 }
