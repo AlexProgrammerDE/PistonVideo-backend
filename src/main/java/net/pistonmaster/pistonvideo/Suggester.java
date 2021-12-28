@@ -33,16 +33,7 @@ public class Suggester {
                     Projections.excludeId());
 
             for (Document doc : collection.find().projection(projectionFields).limit(amount)) {
-                String uploader = doc.getString("uploader");
-
-                videos.add(new VideoResponse(
-                        doc.getString("videoId"),
-                        doc.getString("title"),
-                        doc.getString("description"),
-                        formatVideoToURL(doc.getString("videoUrl")),
-                        formatThumbnailToURL(doc.getString("thumbnailUrl")),
-                        doc.getList("tags", String.class).toArray(new String[0]),
-                        PistonVideoApplication.getUserManager().generatePublicResponse(uploader)));
+                videos.add(VideoManager.generateResponse(doc));
             }
 
             Random random = new Random();

@@ -20,7 +20,7 @@ public class PistonVideoApplication {
     public static final Logger LOG = LoggerFactory.getLogger(PistonVideoApplication.class);
     public static final PublicUserResponse DELETED_USER = new PublicUserResponse("Deleted User", "deleted", formatAvatarToURL("blank.png"), "", "", new ArrayList<>());
     public static final PublicUserResponse DEFAULT_USER = new PublicUserResponse("Default User", "default", formatAvatarToURL("blank.png"), "", "", new ArrayList<>());
-    public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER);
+    public static final VideoResponse DELETED_VIDEO = new VideoResponse("deleted", "Deleted Video", "", "", "", new String[]{}, DELETED_USER, 0);
     @Getter
     private static final UserManager userManager = new UserManager();
     private static final VideoManager videoManager = new VideoManager();

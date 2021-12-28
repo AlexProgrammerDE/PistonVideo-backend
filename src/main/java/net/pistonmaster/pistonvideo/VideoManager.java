@@ -34,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -67,7 +68,21 @@ public class VideoManager {
                 formatVideoToURL(doc.getString("videoUrl")),
                 formatThumbnailToURL(doc.getString("thumbnailUrl")),
                 doc.getList("tags", String.class).toArray(new String[0]),
-                PistonVideoApplication.getUserManager().generatePublicResponse(uploader));
+                PistonVideoApplication.getUserManager().generatePublicResponse(uploader),
+                getViewsOfVideo(doc.getString("videoId")));
+    }
+
+    private static int getViewsOfVideo(String videoId) {
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("views");
+
+            AtomicInteger views = new AtomicInteger();
+            collection.find(eq("videoId", videoId)).iterator().forEachRemaining(doc -> views.incrementAndGet());
+
+            System.out.println(views.get());
+            return views.get();
+        }
     }
 
     public String upload(Request request, Response response) throws Exception {
