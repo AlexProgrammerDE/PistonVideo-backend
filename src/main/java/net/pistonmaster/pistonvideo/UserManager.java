@@ -12,6 +12,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
+import net.pistonmaster.pistonvideo.templates.errors.NotAuthenticatedError;
 import net.pistonmaster.pistonvideo.templates.kratos.IdentityResponse;
 import net.pistonmaster.pistonvideo.templates.kratos.WhoisResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
@@ -106,7 +107,7 @@ public class UserManager {
     public String updateData(Request request, Response response) {
         Optional<String> userId = getUserIdFromToken(request);
         if (userId.isEmpty())
-            return new Gson().toJson(new SuccessResponse(false));
+            return new Gson().toJson(new NotAuthenticatedError());
 
         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
 

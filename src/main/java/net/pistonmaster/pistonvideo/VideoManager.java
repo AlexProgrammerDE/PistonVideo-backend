@@ -5,10 +5,15 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.InsertOneResult;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
+import net.pistonmaster.pistonvideo.templates.errors.InvalidQueryError;
+import net.pistonmaster.pistonvideo.templates.errors.NotAuthenticatedError;
+import net.pistonmaster.pistonvideo.templates.errors.RateLimitError;
+import net.pistonmaster.pistonvideo.templates.errors.VideoNotFoundError;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessIDResponse;
 import net.pistonmaster.pistonvideo.templates.simple.SuccessResponse;
 import org.bson.Document;
@@ -23,7 +28,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class VideoManager {
     public static final File uploadDir = new File("upload");
@@ -105,29 +117,106 @@ public class VideoManager {
         return new Gson().toJson(new SuccessIDResponse(true, id));
     }
 
-    public String videoData(Request request, Response response) {
-        return getVideoData(request.queryParams("id"));
+    public Object watch(Request request, Response response) {
+        String videoId = request.queryParams("id");
+        if (videoId == null) {
+            return new InvalidQueryError("id");
+        }
+
+        String userId = PistonVideoApplication.getUserManager().getUserIdFromToken(request).orElse(null);
+        if (userId == null) {
+            return new NotAuthenticatedError();
+        }
+
+        // Check if the video even exists
+        Optional<VideoResponse> optional = getVideoData(videoId);
+        if (optional.isEmpty()) {
+            return new VideoNotFoundError();
+        }
+
+        try (MongoClient client = DBManager.getMongoClient()) {
+            MongoDatabase database = client.getDatabase("pistonvideo");
+            MongoCollection<Document> collection = database.getCollection("views");
+
+            Bson projectionFields = Projections.fields(
+                    Projections.include("videoId", "userId", "timestamp"),
+                    Projections.excludeId());
+
+            List<View> list = new ArrayList<>();
+            for (Document document : collection.find(eq("videoId", videoId)).projection(projectionFields)) {
+                if (document.getString("userId").equals(userId)) {
+                    Long timestamp = document.getLong("timestamp");
+                    if (timestamp != null) {
+                        list.add(new View(userId, videoId, timestamp));
+                    }
+                }
+            }
+
+            Instant threeHoursAgo = Instant.now().minus(3, ChronoUnit.HOURS);
+            Instant oneWeekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+            int threeHoursCount = 0;
+            int oneWeekCount = 0;
+            for (View view : list) {
+                Instant instant = Instant.ofEpochMilli(view.timestamp());
+
+                if (instant.isAfter(threeHoursAgo)) {
+                    threeHoursCount++;
+                }
+
+                if (instant.isAfter(oneWeekAgo)) {
+                    oneWeekCount++;
+                }
+            }
+
+            if (threeHoursCount >= 2) {
+                return new RateLimitError();
+            } else if (oneWeekCount >= 20) {
+                return new RateLimitError();
+            }
+
+            try {
+                collection.insertOne(new Document()
+                        .append("_id", new ObjectId())
+                        .append("videoId", videoId)
+                        .append("userId", userId)
+                        .append("timestamp", Instant.now().toEpochMilli()));
+
+                return new SuccessResponse(true);
+            } catch (MongoException me) {
+                System.err.println("Unable to insert due to an error: " + me);
+                return new SuccessResponse(false);
+            }
+        }
     }
 
-    public String privateVideoData(Request request, Response response) { // TODO
-        return getVideoData(request.queryParams("id"));
+    public Object videoData(Request request, Response response) {
+        String videoId = request.queryParams("id");
+
+        if (videoId == null)
+            return new InvalidQueryError("id missing");
+
+        return getVideoData(videoId).orElse(PistonVideoApplication.DELETED_VIDEO);
     }
 
-    private String getVideoData(String videoId) {
+    public VideoResponse privateVideoData(Request request, Response response) { // TODO
+        return getVideoData(request.queryParams("id")).orElseThrow();
+    }
+
+    private Optional<VideoResponse> getVideoData(String videoId) {
         try (MongoClient client = DBManager.getMongoClient()) {
             MongoDatabase database = client.getDatabase("pistonvideo");
             MongoCollection<Document> collection = database.getCollection("videos");
 
             Bson projectionFields = videoProjection();
 
-            Document doc = collection.find(Filters.eq("videoId", videoId))
+            Document doc = collection.find(eq("videoId", videoId))
                     .projection(projectionFields)
                     .first();
 
             if (doc == null)
-                return new Gson().toJson(PistonVideoApplication.DELETED_VIDEO);
+                return Optional.empty();
 
-            return new Gson().toJson(generateResponse(doc));
+            return Optional.of(generateResponse(doc));
         }
     }
 
@@ -141,5 +230,8 @@ public class VideoManager {
 
     public static String formatAvatarToURL(String avatar) {
         return "/backend/static/avatars/" + avatar;
+    }
+
+    private record View(String userId, String videoId, Long timestamp) {
     }
 }

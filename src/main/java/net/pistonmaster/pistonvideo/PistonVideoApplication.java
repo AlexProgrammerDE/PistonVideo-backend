@@ -6,13 +6,14 @@ import lombok.Getter;
 import net.pistonmaster.pistonvideo.templates.PublicUserResponse;
 import net.pistonmaster.pistonvideo.templates.UserIDResponse;
 import net.pistonmaster.pistonvideo.templates.VideoResponse;
+import net.pistonmaster.pistonvideo.templates.errors.InvalidQueryError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static net.pistonmaster.pistonvideo.VideoManager.*;
+import static net.pistonmaster.pistonvideo.VideoManager.formatAvatarToURL;
 import static spark.Spark.*;
 
 public class PistonVideoApplication {
@@ -77,23 +78,24 @@ public class PistonVideoApplication {
             });
             get("/privatevideodata", videoManager::privateVideoData);
         });
-        get("/videodata", videoManager::videoData);
-        get("/suggestions", suggester::suggestions);
+        get("/videodata", videoManager::videoData, new Gson()::toJson);
+        get("/suggestions", suggester::suggestions, new Gson()::toJson);
         get("/userdata", (request, response) -> {
             String userId = request.queryParams("id");
 
             if (userId == null)
-                throw new IllegalArgumentException("id missing");
+                return new InvalidQueryError("id missing");
 
-            return new Gson().toJson(userManager.generatePublicResponse(userId));
-        });
+            return userManager.generatePublicResponse(userId);
+        }, new Gson()::toJson);
         get("/uservideos", (request, response) -> {
             String userId = request.queryParams("id");
 
             if (userId == null)
-                throw new IllegalArgumentException("id missing");
+                return new InvalidQueryError("id");
 
-            return new Gson().toJson(userManager.generatePublicVideosResponse(userId));
-        });
+            return userManager.generatePublicVideosResponse(userId);
+        }, new Gson()::toJson);
+        get("/watch", videoManager::watch, new Gson()::toJson);
     }
 }

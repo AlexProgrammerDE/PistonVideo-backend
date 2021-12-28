@@ -19,7 +19,7 @@ import static net.pistonmaster.pistonvideo.VideoManager.formatThumbnailToURL;
 import static net.pistonmaster.pistonvideo.VideoManager.formatVideoToURL;
 
 public class Suggester {
-    public String suggestions(Request request, Response response) {
+    public Object suggestions(Request request, Response response) {
         String param = request.queryParams("amount");
         int amount = param == null ? 20 : Integer.parseInt(param);
         List<VideoResponse> videos = new ArrayList<>();
@@ -50,7 +50,7 @@ public class Suggester {
                 videos.add(videos.get(random.nextInt(videos.size())));
             }
 
-            return new Gson().toJson(videos);
+            return videos;
         }
     }
 }
