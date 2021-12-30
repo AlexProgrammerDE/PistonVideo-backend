@@ -23,7 +23,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
 
-    implementation("com.github.kokorin.jaffree:jaffree:2021.11.06")
+    implementation("com.github.kokorin.jaffree:jaffree:2021.12.30")
 }
 
 application {
