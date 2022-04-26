@@ -14,7 +14,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("org.mongodb:mongodb-driver-sync:4.6.0")
     implementation("com.google.code.gson:gson:2.9.0")
-    implementation("com.google.guava:guava:31.0.1-jre")
+    implementation("com.google.guava:guava:31.1-jre")
 
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
