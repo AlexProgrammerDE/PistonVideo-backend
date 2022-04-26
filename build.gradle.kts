@@ -16,8 +16,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.google.guava:guava:31.0.1-jre")
 
-    compileOnly("org.projectlombok:lombok:1.18.22")
-    annotationProcessor("org.projectlombok:lombok:1.18.22")
+    compileOnly("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
 
     implementation("sh.ory.kratos:kratos-client:0.8.0-alpha.2")
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
