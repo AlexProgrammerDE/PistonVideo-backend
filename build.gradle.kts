@@ -21,7 +21,7 @@ dependencies {
 
     implementation("sh.ory.kratos:kratos-client:0.8.0-alpha.2")
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.5")
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.6")
 
     implementation("com.github.kokorin.jaffree:jaffree:2021.12.30")
 }
