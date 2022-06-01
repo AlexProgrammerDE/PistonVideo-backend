@@ -19,7 +19,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
 
-    implementation("sh.ory.kratos:kratos-client:0.8.0-alpha.2")
+    implementation("sh.ory.kratos:kratos-client:0.10.1")
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.6")
 
