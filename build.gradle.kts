@@ -12,7 +12,7 @@ repositories {
 dependencies {
     implementation("com.sparkjava:spark-core:2.9.3")
     implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("org.mongodb:mongodb-driver-sync:4.6.0")
+    implementation("org.mongodb:mongodb-driver-sync:4.6.1")
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.google.guava:guava:31.1-jre")
 
